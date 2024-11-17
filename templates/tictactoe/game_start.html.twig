@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<script>
+    var board = {{ board|json_encode|raw }};
+</script>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="tic.css">
+    <script src="tic.js" defer></script>
+    <title>Tic Tac Toe</title>
+</head>
+
+<body>
+    <div class="game-view">
+        <div class="player-data">
+            <span class="player-data-name">First player name: {{ models_info[0]['name'] }}</span>
+            <div>
+                <img src="{{ asset('images/' ~ models_info[0]['imageName']) }}" alt="first player image" width="200px" height="200px">
+            </div>
+            <span id="mess1">
+            {% for message in models_info[0]['messages'] %}
+                {% for finalMessage in message %}
+                    <br><br>
+                    {{ finalMessage }}
+                {% endfor %}
+            {% endfor %}
+            </span>
+        </div>
+        <div class="player-data">
+            <span class="player-data-name">Second player name: {{ models_info[1]['name'] }}</span>
+            <div>
+                <img src="{{ asset('images/' ~ models_info[1]['imageName']) }}" alt="second player image" width="200px" height="200px">
+            </div>
+            <span id="mess2">
+            {% for message in models_info[1]['messages'] %}
+                {% for finalMessage in message %}
+                    <br><br>
+                    {{ finalMessage }}
+                {% endfor %}
+            {% endfor %}
+            </span>
+        </div>
+        <div id="main">
+            <h1>TIC TAC TOE</h1>
+            <p id="ins">
+                <br><br>
+                First Player starts as
+                <b>Player O </b>
+                And Second Player as
+                <b>Player X</b>
+            </p>
+            <br><br>
+            <div class="ui">
+                <div class="row">
+                    <div id="b1" class="cell"></div>
+                    <div id="b2" class="cell"></div>
+                    <div id="b3" class="cell"></div>
+                </div>
+                <div class="row">
+                    <div id="b4" class="cell"></div>
+                    <div id="b5" class="cell"></div>
+                    <div id="b6" class="cell"></div>
+                </div>
+                <div class="row">
+                    <div id="b7" class="cell"></div>
+                    <div id="b8" class="cell"></div>
+                    <div id="b9" class="cell"></div>
+                </div>
+            </div>
+            <br><br><br>
+            <br><br>
+            <p id="print"></p>
+            <button id="next-move-button">Następny ruch</button>
+            <button id="all-game-button">Cała gra</button>
+        </div>
+    </div>
+</body>
+</html>
