@@ -25,13 +25,14 @@ class TicTacToeGame
             ],
             $this->ticTacToeGameRepository,
             $this->ticTacToeMoveRepository,
+            $command->promptType,
+            $command->numberOfRepeats,
         );
 
+        sleep(60);
         $gameService->startGame();
         while($gameService->isGameOver() === false) {
             $gameService->nextMove();
         }
-
-        sleep(30);
     }
 }

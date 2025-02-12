@@ -33,6 +33,7 @@ class Llama31With70B implements AiChatModelInterface
         $answer = $this->chat->chat()->completions()->create([
             'model' => 'llama-3.1-70b-versatile',
             'messages' => $this->messages,
+            'max_tokens' => 1,
         ]);
 
         $this->messages[] = [

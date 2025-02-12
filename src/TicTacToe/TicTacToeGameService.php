@@ -2,6 +2,7 @@
 
 namespace App\TicTacToe;
 
+use App\Core\PromptType;
 use App\Entity\TicTacToeGame\TicTacToeGame;
 use App\Entity\TicTacToeMove\TicTacToeMove;
 use App\Game\GameServiceInterface;
@@ -10,20 +11,25 @@ use App\Prompt\TicTacToe\RulesPrompt;
 use App\Prompt\TicTacToe\SecondPlayerMovePrompt;
 use App\Repository\TicTacToeGameRepository;
 use App\Repository\TicTacToeMoveRepository;
+use App\Service\TicTacToeMoveEvaluationService;
 
 class TicTacToeGameService implements GameServiceInterface
 {
     private bool $isGameOver = false;
     /**
      * @var Player[] $players
+     * @var int[] $moves
      */
     public function __construct(
         private readonly array $players,
         private TicTacToeGameRepository $ticTacToeGameRepository,
         private TicTacToeMoveRepository $ticTacToeMoveRepository,
+        private PromptType $promptType,
+        public int $numberOfRepeats,
         private int $moveCount = 0,
         private Board $board = new Board(),
         public int $gameId = 0,
+        public array $moves = [],
     )
     {
     }
@@ -34,7 +40,9 @@ class TicTacToeGameService implements GameServiceInterface
         $game = new TicTacToeGame(
             $this->players[0]->getModel()->getIdentifier(),
             $this->players[1]->getModel()->getIdentifier(),
-            null
+            null,
+            $this->promptType,
+            $this->numberOfRepeats
         );
 
         $this->ticTacToeGameRepository->add($game);
@@ -58,8 +66,17 @@ class TicTacToeGameService implements GameServiceInterface
 
     public function sendRules(): void
     {
-        $this->getPlayers()[0]->getModel()->sendMessage(RulesPrompt::getPrompt());
-        $this->getPlayers()[1]->getModel()->sendMessage(RulesPrompt::getPrompt());
+        if($this->promptType == PromptType::Normal)
+        {
+            $this->getPlayers()[0]->getModel()->sendMessage(RulesPrompt::getPrompt());
+            $this->getPlayers()[1]->getModel()->sendMessage(RulesPrompt::getPrompt());
+        }
+
+        if($this->promptType == PromptType::Best_move_only)
+        {
+            $this->getPlayers()[0]->getModel()->sendMessage(RulesPrompt::getBestMoveRulesPrompt());
+            $this->getPlayers()[1]->getModel()->sendMessage(RulesPrompt::getBestMoveRulesPrompt());
+        }
     }
 
     public function isGameOver(): bool
@@ -74,64 +91,168 @@ class TicTacToeGameService implements GameServiceInterface
 
         if ($this->moveCount%2==1)
         {
-            $answer = $this->getPlayers()[0]->getModel()->sendMessage(FirstPlayerMovePrompt::getPrompt($this->board));
+            if($this->promptType == PromptType::Best_move_only)
+            {
+                $answer = $this->getPlayers()[0]->getModel()->sendMessage(FirstPlayerMovePrompt::getBestMovePrompt($this->board));
+            } else {
+                $answer = $this->getPlayers()[0]->getModel()->sendMessage(FirstPlayerMovePrompt::getPrompt($this->board));
+            }
             $value = 'O';
+            $boardCellFromAnswer = $this->getBoardCellFromAnswer($answer);
+            if($boardCellFromAnswer == -1)
+            {
+                $moveWasCorrect = false;
+            } else {
+                $moveWasCorrect = !($this->board->board[$this->getBoardCellFromAnswer($answer)] !== '');
+                if($moveWasCorrect)
+                {
+                    $this->moves[] = $boardCellFromAnswer;
+                }
+            }
             $this->ticTacToeMoveRepository->add(new TicTacToeMove(
                 $this->gameId,
                 $this->players[0]->getModel()->getIdentifier(),
                 1,
                 $this->moveCount,
                 $answer,
-                $this->getBoardCellFromAnswer($answer),
-                0,
-                !($this->board->board[$this->getBoardCellFromAnswer($answer)] !== '')
+                $boardCellFromAnswer,
+                TicTacToeMoveEvaluationService::calculateEvaluationMove($this->moves, $moveWasCorrect),
+                $moveWasCorrect,
             ));
         } else {
-            $answer = $this->getPlayers()[1]->getModel()->sendMessage(SecondPlayerMovePrompt::getPrompt($this->board));
+            if($this->promptType == PromptType::Best_move_only)
+            {
+                $answer = $this->getPlayers()[1]->getModel()->sendMessage(SecondPlayerMovePrompt::getBestMovePrompt($this->board));
+            } else {
+                $answer = $this->getPlayers()[1]->getModel()->sendMessage(SecondPlayerMovePrompt::getPrompt($this->board));
+            }
             $value = 'X';
+            $boardCellFromAnswer = $this->getBoardCellFromAnswer($answer);
+            if($boardCellFromAnswer == -1)
+            {
+                $moveWasCorrect = false;
+            } else {
+                $moveWasCorrect = !($this->board->board[$this->getBoardCellFromAnswer($answer)] !== '');
+                if($moveWasCorrect)
+                {
+                    $this->moves[] = $boardCellFromAnswer;
+                }
+            }
             $this->ticTacToeMoveRepository->add(new TicTacToeMove(
                 $this->gameId,
                 $this->players[1]->getModel()->getIdentifier(),
                 2,
                 $this->moveCount,
                 $answer,
-                $this->getBoardCellFromAnswer($answer),
-                0,
-                !($this->board->board[$this->getBoardCellFromAnswer($answer)] !== '')
+                $boardCellFromAnswer,
+                TicTacToeMoveEvaluationService::calculateEvaluationMove($this->moves, $moveWasCorrect),
+                $moveWasCorrect
             ));
         }
 
-        while($this->board->board[$this->getBoardCellFromAnswer($answer)] !== '')
+        while(!$moveWasCorrect)
         {
-            if ($this->moveCount%2==1) {
+            if($boardCellFromAnswer==-1)
+            {
+                if ($this->moveCount%2==1) {
+                    $answer = $this->getPlayers()[0]->getModel()->sendMessage('Invalid cell value. Please choose cell from 0 to 8.');
+                    $boardCellFromAnswer = $this->getBoardCellFromAnswer($answer);
+                    if($boardCellFromAnswer == -1)
+                    {
+                        $moveWasCorrect = false;
+                    } else {
+                        $moveWasCorrect = !($this->board->board[$this->getBoardCellFromAnswer($answer)] !== '');
+                        if($moveWasCorrect)
+                        {
+                            $this->moves[] = $boardCellFromAnswer;
+                        }
+                    }
+                    $this->ticTacToeMoveRepository->add(new TicTacToeMove(
+                        $this->gameId,
+                        $this->players[0]->getModel()->getIdentifier(),
+                        1,
+                        $this->moveCount,
+                        $answer,
+                        $boardCellFromAnswer,
+                        TicTacToeMoveEvaluationService::calculateEvaluationMove($this->moves, $moveWasCorrect),
+                        $moveWasCorrect
+                    ));
+                }
+
+                if ($this->moveCount%2==0) {
+                    $answer = $this->getPlayers()[1]->getModel()->sendMessage('Invalid cell value. Please choose cell from 0 to 8.');
+                    $boardCellFromAnswer = $this->getBoardCellFromAnswer($answer);
+                    if($boardCellFromAnswer == -1)
+                    {
+                        $moveWasCorrect = false;
+                    } else {
+                        $moveWasCorrect = !($this->board->board[$this->getBoardCellFromAnswer($answer)] !== '');
+                        if($moveWasCorrect)
+                        {
+                            $this->moves[] = $boardCellFromAnswer;
+                        }
+                    }
+                    $this->ticTacToeMoveRepository->add(new TicTacToeMove(
+                        $this->gameId,
+                        $this->players[1]->getModel()->getIdentifier(),
+                        2,
+                        $this->moveCount,
+                        $answer,
+                        $boardCellFromAnswer,
+                        TicTacToeMoveEvaluationService::calculateEvaluationMove($this->moves, $moveWasCorrect),
+                        $moveWasCorrect
+                    ));
+                }
+            } else if ($this->moveCount%2==1) {
                 $answer = $this->getPlayers()[0]->getModel()->sendMessage('This cell is already taken. Please choose another one from 0 to 8.');
+                $boardCellFromAnswer = $this->getBoardCellFromAnswer($answer);
+                if($boardCellFromAnswer == -1)
+                {
+                    $moveWasCorrect = false;
+                } else {
+                    $moveWasCorrect = !($this->board->board[$this->getBoardCellFromAnswer($answer)] !== '');
+                    if($moveWasCorrect)
+                    {
+                        $this->moves[] = $boardCellFromAnswer;
+                    }
+                }
                 $this->ticTacToeMoveRepository->add(new TicTacToeMove(
                     $this->gameId,
                     $this->players[0]->getModel()->getIdentifier(),
                     1,
                     $this->moveCount,
                     $answer,
-                    $this->getBoardCellFromAnswer($answer),
-                    0,
-                    !($this->board->board[$this->getBoardCellFromAnswer($answer)] !== '')
+                    $boardCellFromAnswer,
+                    TicTacToeMoveEvaluationService::calculateEvaluationMove($this->moves, $moveWasCorrect),
+                    $moveWasCorrect
                 ));
-            }
-            if ($this->moveCount%2==0) {
+            } else if ($this->moveCount%2==0) {
                 $answer = $this->getPlayers()[1]->getModel()->sendMessage('This cell is already taken. Please choose another one from 0 to 8.');
+                $boardCellFromAnswer = $this->getBoardCellFromAnswer($answer);
+                if($boardCellFromAnswer == -1)
+                {
+                    $moveWasCorrect = false;
+                } else {
+                    $moveWasCorrect = !($this->board->board[$this->getBoardCellFromAnswer($answer)] !== '');
+                    if($moveWasCorrect)
+                    {
+                        $this->moves[] = $boardCellFromAnswer;
+                    }
+                }
                 $this->ticTacToeMoveRepository->add(new TicTacToeMove(
                     $this->gameId,
                     $this->players[1]->getModel()->getIdentifier(),
                     2,
                     $this->moveCount,
                     $answer,
-                    $this->getBoardCellFromAnswer($answer),
-                    0,
-                    !($this->board->board[$this->getBoardCellFromAnswer($answer)] !== '')
+                    $boardCellFromAnswer,
+                    TicTacToeMoveEvaluationService::calculateEvaluationMove($this->moves, $moveWasCorrect),
+                    $moveWasCorrect
                 ));
             }
 
             $temp++;
-            if($temp==3)
+            if($temp==$this->numberOfRepeats)
             {
                 if($value == 'O')
                 {
@@ -147,14 +268,12 @@ class TicTacToeGameService implements GameServiceInterface
                 return;
             }
         }
-        $this->board->setCellValue($this->getBoardCellFromAnswer($answer), $value);
+        $this->board->setCellValue($boardCellFromAnswer, $value);
 
         if($this->checkIfGameIsOver())
         {
             $this->win($value);
-        }
-
-        if($this->moveCount==9)
+        } else if($this->moveCount==9)
         {
             $this->draw();
         }
@@ -183,7 +302,7 @@ class TicTacToeGameService implements GameServiceInterface
     {
         $this->getPlayers()[0]->getModel()->sendMessage('Draw!');
         $this->getPlayers()[1]->getModel()->sendMessage('Draw!');
-        $this->ticTacToeGameRepository->find($this->gameId)->setScore(0);
+        $this->ticTacToeGameRepository->findGameAndSetScore($this->gameId, 0);
         $this->isGameOver = true;
     }
 
@@ -202,8 +321,11 @@ class TicTacToeGameService implements GameServiceInterface
     private function getBoardCellFromAnswer(string $answer): int
     {
         if (preg_match('/\d+/', $answer, $matches)) {
-            return (int)$matches[0];
+            $number = (int)$matches[0];
+            if ($number >= 0 && $number <= 8) {
+                return $number;
+            }
         }
-        return 0;
+        return -1;
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\AiChatModel\AiChatModelInterface;
+use App\Core\PromptType;
 use App\Service\AiChatModelLocator;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -53,12 +54,23 @@ class GameSetupType extends AbstractType
                 'label' => 'Type of process',
                 'choices' => [
                     'Play game in browser' => 'browser',
-                    'Get data with cron' => 'cron',
+                    'Get data with queue' => 'cron',
                 ],
                 'required' => true,
             ])
             ->add('numberOfGames', IntegerType::class, [
                 'label' => 'Number of games',
+                'required' => true,
+            ])
+            ->add('numberOfRepeats', IntegerType::class, [
+                'label' => 'Number of repeats',
+                'required' => true,
+            ])
+            ->add('promptType', ChoiceType::class, [
+                'label' => 'Prompt type',
+                'choices' => PromptType::cases(),
+                'choice_value' => fn (?PromptType $choice) => $choice?->value,
+                'choice_label' => fn (PromptType $choice) => $choice->name,
                 'required' => true,
             ])
             ->add('start', SubmitType::class, [

@@ -1,0 +1,57 @@
+WITH all_pairs AS (
+    SELECT DISTINCT first_player_id, second_player_id
+    FROM tic_tac_toe_game
+    WHERE prompt_type = 'best move only'
+),
+     game_moves AS (
+         SELECT
+             g.first_player_id,
+             g.second_player_id,
+             MAX(m.move_count) AS max_moves
+         FROM tic_tac_toe_game g
+                  JOIN tic_tac_toe_move m ON g.id = m.game_id
+         WHERE g.prompt_type = 'best move only' AND g.score <= 2
+         GROUP BY g.id, g.first_player_id, g.second_player_id
+     ),
+     average_moves AS (
+         SELECT
+             first_player_id,
+             second_player_id,
+             REPLACE(TO_CHAR(AVG(max_moves), 'FM999999990.00'), '.', ',') AS avg_moves
+         FROM game_moves
+         GROUP BY first_player_id, second_player_id
+     )
+SELECT
+    ap.first_player_id,
+    ap.second_player_id,
+    COALESCE(am.avg_moves, '0,00') AS avg_moves
+FROM all_pairs ap
+         LEFT JOIN average_moves am
+                   ON ap.first_player_id = am.first_player_id
+                       AND ap.second_player_id = am.second_player_id
+ORDER BY
+    CASE ap.first_player_id
+        WHEN 'chatgpt4' THEN 1
+        WHEN 'chatgpt4o' THEN 2
+        WHEN 'Gemma 2 9B' THEN 3
+        WHEN 'Llama 3 8B' THEN 4
+        WHEN 'Llama 3 70B' THEN 5
+        WHEN 'Llama 3.1 8B' THEN 6
+        WHEN 'Llama 3.1 70B' THEN 7
+        WHEN 'Mixtral 8x7B' THEN 8
+        ELSE 9
+        END,
+    CASE ap.second_player_id
+        WHEN 'chatgpt4' THEN 1
+        WHEN 'chatgpt4o' THEN 2
+        WHEN 'Gemma 2 9B' THEN 3
+        WHEN 'Llama 3 8B' THEN 4
+        WHEN 'Llama 3 70B' THEN 5
+        WHEN 'Llama 3.1 8B' THEN 6
+        WHEN 'Llama 3.1 70B' THEN 7
+        WHEN 'Mixtral 8x7B' THEN 8
+        ELSE 9
+        END,
+    avg_moves DESC;
+
+

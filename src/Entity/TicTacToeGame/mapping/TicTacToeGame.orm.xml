@@ -8,8 +8,10 @@
         <id name="id" column="id" type="integer">
             <generator strategy="IDENTITY"/>
         </id>
-        <field name="firstPlayerId" column="first_player_id" nullable="false"/>
-        <field name="secondPlayerId" column="second_player_id" nullable="false"/>
+        <field name="firstPlayerId" column="first_player_id"/>
+        <field name="secondPlayerId" column="second_player_id"/>
         <field name="score" column="score" type="integer" nullable="true"/>
+        <field name="promptType" column="prompt_type" enum-type="PromptType"/>
+        <field name="numberOfRepetitions" column="number_of_repetitions" type="integer"/>
     </entity>
 </doctrine-mapping>

@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Core\PromptType;
 use App\Form\GameSetupType;
 use App\Repository\TicTacToeGameRepository;
 use App\Repository\TicTacToeMoveRepository;
@@ -44,6 +45,13 @@ class TicTacToeController extends AbstractController
             $game = $data['game'];
             $typeOfProcess = $data['typeOfProcess'];
             $numberOfGames = $data['numberOfGames'];
+            /**
+             * @var PromptType $promptType
+             */
+            $promptType = $data['promptType'];
+            $session->set('promptType', $promptType->value);
+            $numberOfRepeats = $data['numberOfRepeats'];
+            $session->set('number_of_repeats', $numberOfRepeats);
 
             if($game === 'tictactoe' && $typeOfProcess === 'browser') {
                 $session->set(
@@ -59,7 +67,7 @@ class TicTacToeController extends AbstractController
 
             if($game === 'tictactoe' && $typeOfProcess === 'cron') {
                 for($i = 0; $i < $numberOfGames; $i++) {
-                    $this->messageBus->dispatch(new TicTacToeGameCommand($model1, $model2));
+                    $this->messageBus->dispatch(new TicTacToeGameCommand($model1, $model2, $promptType, $numberOfRepeats));
                 }
             }
         }
@@ -75,12 +83,14 @@ class TicTacToeController extends AbstractController
             $session->get('players'),
             $this->ticTacToeGameRepository,
             $this->ticTacToeMoveRepository,
+            PromptType::from($session->get('promptType')),
+            $session->get('number_of_repeats'),
         );
         $session->set('board', $gameService->getBoard());
         $session->set('move_number', 0);
-
         $gameService->startGame();
         $session->set('game_id', $gameService->gameId);
+        $session->set('moves', $gameService->moves);
         $modelsInfo = [];
         foreach ($gameService->getPlayers() as $player) {
             $model = $player->getModel();
@@ -103,13 +113,17 @@ class TicTacToeController extends AbstractController
             $session->get('players'),
             $this->ticTacToeGameRepository,
             $this->ticTacToeMoveRepository,
+            PromptType::from($session->get('promptType')),
+            $session->get('number_of_repeats'),
             $session->get('move_number'),
             $session->get('board'),
             $session->get('game_id'),
+            $session->get('moves'),
         );
         $gameService->nextMove();
         $session->set('board', $gameService->getBoard());
         $session->set('move_number', $gameService->getMoveCount());
+        $session->set('moves', $gameService->moves);
         $board = $gameService->getBoard()->board;
         $modelsInfo = [];
         foreach ($gameService->getPlayers() as $player) {
@@ -132,6 +146,8 @@ class TicTacToeController extends AbstractController
             $session->get('players'),
             $this->ticTacToeGameRepository,
             $this->ticTacToeMoveRepository,
+            PromptType::from($session->get('promptType')),
+            $session->get('number_of_repeats'),
         );
         $gameService->startGame();
         while($gameService->isGameOver() === false) {

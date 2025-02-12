@@ -33,6 +33,7 @@ class Mixtral8x7B implements AiChatModelInterface
         $answer = $this->chat->chat()->completions()->create([
             'model' => 'mixtral-8x7b-32768',
             'messages' => $this->messages,
+            'max_tokens' => 1,
         ]);
 
         $this->messages[] = [

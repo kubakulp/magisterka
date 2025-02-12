@@ -10,7 +10,7 @@
         <field name="playerId" column="player_id"/>
         <field name="playerNumber" column="player_number" type="integer"/>
         <field name="moveCount" column="move_count" type="integer"/>
-        <field name="moveAnswer" column="move_answer"/>
+        <field name="moveAnswer" column="move_answer" type="text"/>
         <field name="moveNumber" column="move_number" type="integer"/>
         <field name="moveEvaluation" column="move_evaluation" type="integer"/>
         <field name="moveWasCorrect" column="move_was_correct" type="boolean"/>
