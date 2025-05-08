@@ -1,0 +1,11 @@
+SELECT
+    lm.player_id,
+    lm.item_id,
+    lm.value,
+    COUNT(*) AS occurrence_count
+FROM licitation_move lm
+         JOIN licitation_game lg ON lm.licitation_game_id = lg.id
+WHERE lg.number_of_tokens = 100
+GROUP BY lm.player_id, lm.item_id, lm.value
+HAVING COUNT(*) >= 10
+ORDER BY lm.player_id, lm.item_id, occurrence_count DESC;

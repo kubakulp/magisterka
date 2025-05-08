@@ -33,7 +33,7 @@ class Llama31With8B implements AiChatModelInterface
         $answer = $this->chat->chat()->completions()->create([
             'model' => 'llama-3.1-8b-instant',
             'messages' => $this->messages,
-            'max_tokens' => 1,
+            'max_tokens' => 20,
         ]);
 
         $this->messages[] = [

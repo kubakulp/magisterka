@@ -21,8 +21,17 @@ framework:
                 retry_strategy:
                     max_retries: 3
                     multiplier: 2
+            async_licitation:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    use_notify: true
+                    check_delayed_interval: 60000
+                retry_strategy:
+                    max_retries: 3
+                    multiplier: 2
         routing:
             Symfony\Component\Mailer\Messenger\SendEmailMessage: async
             Symfony\Component\Notifier\Message\ChatMessage: async
             Symfony\Component\Notifier\Message\SmsMessage: async
-            App\TicTacToe\Command\TicTacToeGameCommand: async_tictactoe
+            App\Command\TicTacToeGameCommand: async_tictactoe
+            App\Command\LicitationGameCommand: async_licitation

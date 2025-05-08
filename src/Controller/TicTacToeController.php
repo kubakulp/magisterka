@@ -2,12 +2,12 @@
 
 namespace App\Controller;
 
+use App\Command\TicTacToeGameCommand;
 use App\Core\PromptType;
-use App\Form\GameSetupType;
+use App\Form\TicTacToeGameSetupType;
 use App\Repository\TicTacToeGameRepository;
 use App\Repository\TicTacToeMoveRepository;
 use App\Service\AiChatModelLocator;
-use App\TicTacToe\Command\TicTacToeGameCommand;
 use App\TicTacToe\Player;
 use App\TicTacToe\TicTacToeGameService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,7 +32,7 @@ class TicTacToeController extends AbstractController
     {
         $models = $modelLocator->getModels();
 
-        $form = $this->createForm(GameSetupType::class, null, [
+        $form = $this->createForm(TicTacToeGameSetupType::class, null, [
             'models' => $models,
         ]);
 
@@ -42,7 +42,6 @@ class TicTacToeController extends AbstractController
             $data = $form->getData();
             $model1 = $data['model1'];
             $model2 = $data['model2'];
-            $game = $data['game'];
             $typeOfProcess = $data['typeOfProcess'];
             $numberOfGames = $data['numberOfGames'];
             /**
@@ -53,7 +52,7 @@ class TicTacToeController extends AbstractController
             $numberOfRepeats = $data['numberOfRepeats'];
             $session->set('number_of_repeats', $numberOfRepeats);
 
-            if($game === 'tictactoe' && $typeOfProcess === 'browser') {
+            if($typeOfProcess === 'browser') {
                 $session->set(
                     'players',
                     [
@@ -65,7 +64,7 @@ class TicTacToeController extends AbstractController
                 return $this->redirectToRoute('tic_tac_toe_game');
             }
 
-            if($game === 'tictactoe' && $typeOfProcess === 'cron') {
+            if($typeOfProcess === 'cron') {
                 for($i = 0; $i < $numberOfGames; $i++) {
                     $this->messageBus->dispatch(new TicTacToeGameCommand($model1, $model2, $promptType, $numberOfRepeats));
                 }

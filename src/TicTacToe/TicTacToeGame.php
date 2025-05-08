@@ -2,9 +2,9 @@
 
 namespace App\TicTacToe;
 
+use App\Command\TicTacToeGameCommand;
 use App\Repository\TicTacToeGameRepository;
 use App\Repository\TicTacToeMoveRepository;
-use App\TicTacToe\Command\TicTacToeGameCommand;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
@@ -29,10 +29,11 @@ class TicTacToeGame
             $command->numberOfRepeats,
         );
 
-        sleep(60);
         $gameService->startGame();
+        sleep(121);
         while($gameService->isGameOver() === false) {
             $gameService->nextMove();
+            sleep(121);
         }
     }
 }

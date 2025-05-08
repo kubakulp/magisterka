@@ -1,0 +1,7 @@
+SELECT licitation_player.id,
+       SUM(CASE WHEN licitation_player.player_won THEN 1 ELSE 0 END) AS total_wins
+FROM licitation_player
+WHERE licitation_player.licitation_game_id IN (
+    SELECT id FROM licitation_game WHERE number_of_tokens = 100
+)
+GROUP BY licitation_player.id;

@@ -1,0 +1,64 @@
+{% block body %}
+    <div class="container mt-5">
+        <h2 class="mb-4">Konfiguracja Gry</h2>
+
+        {{ form_start(form, {'attr': {'id': 'game-settings-form'}}) }}
+        <div class="mb-3">
+            {{ form_label(form.chat_types) }}
+            {{ form_widget(form.chat_types) }}
+        </div>
+        <div class="mb-3">
+            {{ form_label(form.number_of_games) }}
+            {{ form_widget(form.number_of_games, { 'attr': {'class': 'form-control'} }) }}
+        </div>
+        <div class="mb-3">
+            {{ form_label(form.typeOfProcess) }}
+            {{ form_widget(form.typeOfProcess, { 'attr': {'class': 'form-control'} }) }}
+        </div>
+        <div class="mb-3">
+            {{ form_label(form.number_of_repeats) }}
+            {{ form_widget(form.number_of_repeats, { 'attr': {'class': 'form-control'} }) }}
+        </div>
+        <div class="mb-3">
+            {{ form_label(form.number_of_items) }}
+            {{ form_widget(form.number_of_items, { 'attr': {'class': 'form-control', 'id': 'form_number_of_items'} }) }}
+        </div>
+        <div class="mb-3">
+            {{ form_label(form.promptType) }}
+            {{ form_widget(form.promptType, { 'attr': {'class': 'form-control'} }) }}
+        </div>
+        <div id="items-container" class="mb-3">
+            <div id="items-list"></div>
+        </div>
+        {{ form_end(form) }}
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const numberOfItemsInput = document.getElementById("licitation_game_setup_number_of_items");
+            const itemsContainer = document.getElementById("items-list");
+
+            if (!numberOfItemsInput || !itemsContainer) {
+                console.error("Elementy formularza nie zostały znalezione.");
+                return;
+            }
+
+            function updateItemInputs() {
+                itemsContainer.innerHTML = "";
+                const itemCount = parseInt(numberOfItemsInput.value) || 0;
+
+                for (let i = 0; i < itemCount; i++) {
+                    let input = document.createElement("input");
+                    input.type = "number";
+                    input.name = `items[${i}]`;
+                    input.className = "form-control mb-2";
+                    input.placeholder = `Wartość przedmiotu ${i + 1}`;
+                    itemsContainer.appendChild(input);
+                }
+            }
+
+            updateItemInputs();
+            numberOfItemsInput.addEventListener("input", updateItemInputs);
+        });
+    </script>
+{% endblock %}

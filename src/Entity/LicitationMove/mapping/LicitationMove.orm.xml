@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                          http://raw.github.com/doctrine/doctrine2/master/doctrine-mapping.xsd">
+
+    <entity name="App\Entity\LicitationMove\LicitationMove" table="licitation_move">
+        <id name="licitationGameId" column="licitation_game_id" type="integer"/>
+        <id name="playerId" column="player_id"/>
+        <id name="itemId" column="item_id" type="integer"/>
+        <field name="value" column="value"/>
+    </entity>
+</doctrine-mapping>

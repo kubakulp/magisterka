@@ -34,7 +34,7 @@ class ChatGPT4o implements AiChatModelInterface
             'model' => 'gpt-4o',
             'messages' => $this->messages,
             'temperature' => 1.0,
-            'max_tokens' => 1,
+            'max_tokens' => 20,
             'frequency_penalty' => 0,
             'presence_penalty' => 0,
         ]));

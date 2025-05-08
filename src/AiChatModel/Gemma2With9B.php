@@ -33,7 +33,7 @@ class Gemma2With9B implements AiChatModelInterface
         $answer = $this->chat->chat()->completions()->create([
             'model' => 'gemma2-9b-it',
             'messages' => $this->messages,
-            'max_tokens' => 1,
+            'max_tokens' => 20,
         ]);
 
         $this->messages[] = [

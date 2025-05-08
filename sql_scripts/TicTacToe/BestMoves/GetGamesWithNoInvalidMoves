@@ -1,0 +1,61 @@
+WITH all_pairs AS (
+    SELECT DISTINCT first_player_id, second_player_id
+    FROM tic_tac_toe_game
+    WHERE prompt_type = 'best move only'
+),
+     total_games AS (
+         SELECT
+             first_player_id,
+             second_player_id,
+             COUNT(*) AS game_count
+         FROM tic_tac_toe_game
+         WHERE prompt_type = 'best move only'
+         GROUP BY first_player_id, second_player_id
+     ),
+     flawless_games AS (
+         SELECT
+             g.first_player_id,
+             g.second_player_id,
+             COUNT(DISTINCT g.id) AS flawless_count
+         FROM tic_tac_toe_game g
+                  JOIN tic_tac_toe_move m1
+                       ON g.id = m1.game_id AND g.first_player_id = m1.player_id
+                  JOIN tic_tac_toe_move m2
+                       ON g.id = m2.game_id AND g.second_player_id = m2.player_id
+         WHERE g.prompt_type = 'best move only'
+         GROUP BY g.first_player_id, g.second_player_id, g.id
+         HAVING BOOL_AND(m1.move_was_correct) AND BOOL_AND(m2.move_was_correct)
+     )
+SELECT
+    ap.first_player_id,
+    ap.second_player_id,
+    COALESCE(SUM(fg.flawless_count), 0) AS flawless_games
+FROM all_pairs ap
+         LEFT JOIN flawless_games fg
+                   ON ap.first_player_id = fg.first_player_id
+                       AND ap.second_player_id = fg.second_player_id
+GROUP BY ap.first_player_id, ap.second_player_id
+ORDER BY
+    CASE ap.first_player_id
+        WHEN 'chatgpt4' THEN 1
+        WHEN 'chatgpt4o' THEN 2
+        WHEN 'Gemma 2 9B' THEN 3
+        WHEN 'Llama 3 8B' THEN 4
+        WHEN 'Llama 3 70B' THEN 5
+        WHEN 'Llama 3.1 8B' THEN 6
+        WHEN 'Llama 3.1 70B' THEN 7
+        WHEN 'Mixtral 8x7B' THEN 8
+        ELSE 9
+        END,
+    CASE ap.second_player_id
+        WHEN 'chatgpt4' THEN 1
+        WHEN 'chatgpt4o' THEN 2
+        WHEN 'Gemma 2 9B' THEN 3
+        WHEN 'Llama 3 8B' THEN 4
+        WHEN 'Llama 3 70B' THEN 5
+        WHEN 'Llama 3.1 8B' THEN 6
+        WHEN 'Llama 3.1 70B' THEN 7
+        WHEN 'Mixtral 8x7B' THEN 8
+        ELSE 9
+        END,
+    flawless_games DESC;

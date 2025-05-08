@@ -27,6 +27,36 @@ doctrine:
                 dir: '%kernel.project_dir%/src/Entity/TicTacToeMove/mapping'
                 prefix: 'App\Entity\TicTacToeMove'
                 alias: TicTacToeMove
+            LicitationGame:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Entity/LicitationGame/mapping'
+                prefix: 'App\Entity\LicitationGame'
+                alias: LicitationGame
+            LicitationMove:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Entity/LicitationMove/mapping'
+                prefix: 'App\Entity\LicitationMove'
+                alias: LicitationMove
+            LicitationAnswer:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Entity/LicitationAnswer/mapping'
+                prefix: 'App\Entity\LicitationAnswer'
+                alias: LicitationAnswer
+            LicitationItem:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Entity/LicitationItem/mapping'
+                prefix: 'App\Entity\LicitationItem'
+                alias: LicitationItem
+            LicitationPlayer:
+                type: xml
+                is_bundle: false
+                dir: '%kernel.project_dir%/src/Entity/LicitationPlayer/mapping'
+                prefix: 'App\Entity\LicitationPlayer'
+                alias: LicitationPlayer
 
 when@test:
     doctrine:

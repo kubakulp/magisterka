@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Licitation</title>
+</head>
+
+<body>
+<div class="game-view">
+    {% for player in models_info %}
+        <div class="player-data">
+            <span class="player-data-name">{{ player.name }}</span>
+            <div>
+                <img src="{{ asset('images/' ~ player.imageName) }}" alt="player image" width="200px" height="200px">
+            </div>
+            <span id="mess{{ loop.index }}">
+                    {% for message in player.messages %}
+                        {% for finalMessage in message %}
+                            <br><br>
+                            {{ finalMessage }}
+                        {% endfor %}
+                    {% endfor %}
+                </span>
+        </div>
+    {% endfor %}
+</div>
+</body>
+</html>

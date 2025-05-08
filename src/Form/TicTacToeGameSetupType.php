@@ -12,7 +12,7 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class GameSetupType extends AbstractType
+class TicTacToeGameSetupType extends AbstractType
 {
     public function __construct(
         private readonly AiChatModelLocator $modelLocator
@@ -40,14 +40,6 @@ class GameSetupType extends AbstractType
                 'choices' => $models,
                 'choice_label' => fn($model) => $model->getName(),
                 'choice_value' => 'identifier',
-                'required' => true,
-            ])
-            ->add('game', ChoiceType::class, [
-                'label' => 'Game',
-                'choices' => [
-                    'Tic Tac Toe' => 'tictactoe',
-                    'Licitation' => 'licitation',
-                ],
                 'required' => true,
             ])
             ->add('typeOfProcess', ChoiceType::class, [

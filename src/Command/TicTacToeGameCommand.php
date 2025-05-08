@@ -1,6 +1,6 @@
 <?php
 
-namespace App\TicTacToe\Command;
+namespace App\Command;
 
 use App\AiChatModel\AiChatModelInterface;
 use App\Core\PromptType;
